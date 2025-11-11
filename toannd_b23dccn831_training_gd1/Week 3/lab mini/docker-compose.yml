@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db-mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: bookshop
+    ports:
+      - "3307:3306"
+    expose:
+      - "3306"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+
+  backend-spring:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-spring
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/bookshop
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - upload-file.base-path=file:///uploads/
+    depends_on:
+      - db-mysql
+      - redis
+    volumes:
+      - ./upload-docker/:/uploads/
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-spring
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
