@@ -28,11 +28,13 @@ deploy_staging:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan 192.168.22.150 >> ~/.ssh/known_hosts
+    - ssh-keyscan "$SERVER_HOST" >> ~/.ssh/known_hosts
   script:
     - ssh "$SERVER_USER@$SERVER_HOST" "
         echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin $CI_REGISTRY &&
-        cd /home/bookshop &&
+        echo '$SUDO_PASS' | sudo -S cp -r /home/gitlab-runner/builds/HTy413qga/0/'$CI_REGISTRY_USER'/'$PROJECT_NAME' /home &&
+        echo '$SUDO_PASS' | sudo -S chown -R "$SERVER_USER:$SERVER_USER" /home/'$PROJECT_NAME' &&
+        cd /home/'$PROJECT_NAME' &&
         docker compose pull &&
         docker compose up -d
       "
@@ -49,13 +51,13 @@ deploy_production:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan 192.168.22.150 >> ~/.ssh/known_hosts
+    - ssh-keyscan "$SERVER_HOST" >> ~/.ssh/known_hosts
   script:
     - ssh "$SERVER_USER@$SERVER_HOST" "
         echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin $CI_REGISTRY &&
-        echo '$SUDO_PASS' | sudo -S cp -r /home/gitlab-runner/builds/HTy413qga/0/luckyn135/bookshop /home &&
-        echo '$SUDO_PASS' | sudo -S chown -R toannd:toannd /home/bookshop &&
-        cd /home/bookshop &&
+        echo '$SUDO_PASS' | sudo -S cp -r /home/gitlab-runner/builds/HTy413qga/0/'$CI_REGISTRY_USER'/'$PROJECT_NAME' /home &&
+        echo '$SUDO_PASS' | sudo -S chown -R "$SERVER_USER:$SERVER_USER" /home/'$PROJECT_NAME' &&
+        cd /home/'$PROJECT_NAME' &&
         docker compose pull &&
         docker compose up -d
       "
