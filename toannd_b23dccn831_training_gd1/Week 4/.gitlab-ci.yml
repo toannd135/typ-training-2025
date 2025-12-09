@@ -21,15 +21,35 @@ build_backend:
     - docker push "$CI_REGISTRY_IMAGE/backend:latest"
   tags:
     - dev-server
-
-# ======== DEPLOY TO SERVER ========
-deploy:
+# ======== DEPLOY STAGING ========
+deploy_staging:
   stage: deploy
   before_script:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan "$SERVER_HOST" >> ~/.ssh/known_hosts
+    - ssh-keyscan 192.168.22.150 >> ~/.ssh/known_hosts
+  script:
+    - ssh "$SERVER_USER@$SERVER_HOST" "
+        echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin $CI_REGISTRY &&
+        cd /home/bookshop &&
+        docker compose pull &&
+        docker compose up -d
+      "
+  tags:
+    - dev-server
+  only:
+    - develop
+
+# ======== DEPLOY PRODUCTION========
+deploy_production:
+  stage: deploy
+  when: manual
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan 192.168.22.150 >> ~/.ssh/known_hosts
   script:
     - ssh "$SERVER_USER@$SERVER_HOST" "
         echo '$CI_REGISTRY_PASSWORD' | docker login -u '$CI_REGISTRY_USER' --password-stdin $CI_REGISTRY &&
@@ -41,3 +61,5 @@ deploy:
       "
   tags:
     - dev-server
+  only:
+    - main
