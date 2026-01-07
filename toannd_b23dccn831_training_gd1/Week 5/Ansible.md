@@ -29,7 +29,50 @@
       [privilege_escalation]          # cấu hình leo thang quyền, cho phép Ansible chạy task với quyền cao hơn
       become = True                   # Tự động dùng sudo cho tất cả các task
       become_method = sudo            # Ubuntu / CentOS / Debian dùng sudo
-      become_user = root              # Yser sẽ chuyển sang sau khi sudo
+      become_user = root              # User sẽ chuyển sang sau khi sudo
       become_ask_pass = False         # không hỏi mật khẩu
    
 ## III - Inventory
+* **Inventory** là nơi chứa danh sách các host mà Ansible sẽ thực thi trên đó
+* Hỗ trợ hai định dạng chính là INI và YAML
+* Tổ chức các máy chủ thành các groups, dễ quản và thực thi
+* Lấy ra danh sách Inventory
+  ```bash
+     ansible-inventory -i inventory.ini --list
+* hoặc
+  ```bash
+      ansible-inventory -i inventory.ini --graph
+
+* **Quản lý nhóm**
+   * Ansible gom nhóm các host để dễ quản lý
+   * Ví dụ: nhóm web-server
+     ```bash
+     [web-servers]
+      web-01 ansible_host=192.168.1.10
+      web-02 ansible_host=192.168.1.11
+   * Nhóm lồng nhau chứa hậu tố children
+     ```bash
+        [infrastructure:children]
+         loadbalancers
+         web-servers
+         db-servers
+* **Biến trong Inventory**
+  * **Biến host 
+  * Cấu trúc: <hostname> <tên_biến>=<giá_trị>
+   * Ví dụ:
+   ```bash
+      web-01 ansible_host=192.168.1.10 
+   * Biến nhóm: dùng section [ten_nhom:vars]
+   
+* **Các tham số kết kết nối**
+     * ansible_host: IP hoặc hostname muốn kết nối đến
+     * ansible_port: Cổng SSH (mặc định là 22)
+     * ansible_user: Username để đăng nhập SSH
+     * ansible_password: Mật khẩu SSH
+     * ansible_ssh_private_key_file: Đường dẫn đến nơi chứ private key
+     * ansible_connection: loại kết nối (mặc định là ssh)
+     * ansible_become: yes bật chế độ sudo
+     * ansible_become_user: User muốn chuyển sang (thường là root)
+     * ansible_become_password: Mật khẩu khi sudo
+   
+ ## IV - Ad-Hoc commands trong Ansible
