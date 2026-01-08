@@ -159,3 +159,174 @@
    3. Không thể tái sử dụng - Chỉ phù hợp cho tác vụ một lần
    4 .Không hỗ trợ handler - Không thể trigger các hành động sau
    5.  Giới hạn về error handling - Xử lý lỗi thủ công
+## V - Playbook
+  * Ansible playbook là file YAML dùng để xác định tập hợp các tác vụ để tự động hóa việc cấu hình các máy từ xa
+  * Một Ansible Playbook thường bao gồm nhiều mục, trong đó mỗi mục chứa danh sách các tác vụ sẽ được thực hiện. Cấu trúc cơ bản của một Playbook bao gồm:
+      * Plays: Một danh sách các tác vụ được chạy trên nhóm máy chủ đã định nghĩa.
+      * Tasks: Danh sách các tác vụ cụ thể thực hiện công việc.
+* Ví dụ: cài nginx
+  ```bash
+     - hosts: webservers
+        become: true
+      
+        tasks:
+          - name: Update apt cache
+            apt:
+              update_cache: yes
+  
+          - name: Install nginx
+            apt:
+              name: nginx
+              state: present
+      
+          - name: Start nginx
+            service:
+              name: nginx
+              state: started
+  ```
+* Chạy
+  ```bash
+     ansible-playbook install_nginx.yml
+* Trước khi chạy, nên kiểm tra Playbook để tránh lỗi cú pháp hoặc logic:
+   * **Các lệnh kiểm tra:** `ansible-playbook --syntax-check` (kiểm tra cú pháp), `--list-hosts` (liệt kê máy), `--list-tasks` (liệt kê tác vụ).
+
+## VI - Modules
+* Module là đơn vị chức năng nhỏ nhất trong Ansible, thực thi các tác vụ cụ thể trên remote host.
+* Ansible không chạy lệnh shell trực tiếp, mà chạy thông qua module.
+* Một số modules hay dùng:
+     * **System modules**:
+        * **command** - Thực thi lệnh hệ thống
+           * ví dụ:
+             ```bash
+                name: Check disk space
+                command: df -h
+                register: disk_info
+        * **shell** - Thực thi lệnh với shell features
+          * ví dụ:
+            ```bash
+               - name: Process management with pipes
+                 shell: ps aux | grep nginx | grep -v grep | wc -l
+                 register: nginx_processes
+         * **setup** - Thu thập system facts
+           * ví dụ:
+             ```bash
+             - name: Collect specific facts
+               setup:
+               gather_subset:
+                  - hardware
+                  - network
+                  - virtual
+    * **Package modules**
+         * **apt** - Quản lý package trên Ubuntu/Debian
+            * ví dụ:
+              ```bash
+                 - name: Install single package
+                   apt:
+                      name: nginx
+                      state: present
+                      update_cache: yes
+
+         * **yum** - Quản lý package trên CentOS/RetHat
+            * ví dụ:
+              ```bash
+                 - name: Update all packages
+                   yum:
+                      name: "*"
+                      state: latest
+                      security: yes
+              
+         * **pip** - Quản lý Python packages
+            * ví dụ:
+              ```bash
+                 - name: Install Python package globally
+                   pip:
+                      name: docker
+                      state: latest
+              
+    * **Service modules**
+         * **service** - Quản lý service
+           * ví dụ:
+             ```bash
+                - name: Start service
+                  service:
+                   name: nginx
+                   state: started
+                   enabled: yes
+    * **File modules**
+         * **file** - Quản lý file thư mục
+            * ví dụ:
+              ```bash
+               - name: Create directory with permissions
+                 file:
+                   path: /opt/myapp
+                   state: directory
+                   owner: appuser
+                   group: appgroup
+                   mode: '0755'
+                   recurse: yes 
+         * **copy** - Copy file từ local đến remote
+            * ví dụ:
+              ```bash
+               - name: Copy single file
+                 copy:
+                   src: files/nginx.conf
+                   dest: /etc/nginx/nginx.conf
+                   owner: root
+                   group: root
+                   mode: '0644'
+                   backup: yes 
+         * **get-url** - Download file từ url
+            * ví dụ:
+              ```bash
+               - name: Download file with checksum
+                 get_url:
+                   url: https://example.com/software.tar.gz
+                   dest: /tmp/software.tar.gz
+                   checksum: sha256:b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+                   mode: '0755'
+                   timeout: 30
+    * **User modules**
+       * **user** - Quản lý account
+          * ví dụ:
+            ```bash
+            - name: Create user with home directory
+              user:
+                name: appuser
+                uid: 1001
+                group: developers
+                groups: wheel,docker,www-data
+                append: yes  # Thêm vào groups, không thay thế
+                shell: /bin/bash
+                home: /home/appuser
+                create_home: yes
+                system: no
+                password: "{{ 'secretpassword' | password_hash('sha512', 'mysalt') }}"
+                update_password: on_create
+       * **group** - Quản lý group
+          * ví dụ:
+               ```bash
+               - name: Create primary group
+                 group:
+                   name: developers
+                   gid: 2001
+                   state: present
+                   system: no
+    * **Netword modules**
+       * **uri** - HTTP/HTTPS request    
+         * ví dụ:
+           ```bash
+           - name: Check web service health
+              uri:
+                url: http://localhost:8080/health
+                method: GET
+                status_code: 200
+                timeout: 10
+                headers:
+                  Accept: "application/json"
+                body_format: json
+              register: health_check
+              until: health_check.status == 200
+              retries: 5
+              delay: 3
+    * **Cloud module**
+      
