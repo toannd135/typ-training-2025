@@ -18,15 +18,15 @@
  * Thông tin về một file ansible.cfg
 
    ```bash
-   [defaults]                          # group mặc đinh, cấu hình chung
+   [defaults]                             # group mặc đinh, cấu hình chung
       inventory = ./inventory.ini         # chỉ định các host mặc định trong inventory
       remote_user = ansible-bot           # tên User mặc định để SSH đến
       private_key_file = ~/.ssh/ansible   # nơi chứa SSH key mặc định
-      host_key_checking = False         # tắt kiểm tra SSH
+      host_key_checking = False           # tắt kiểm tra SSH
       timeout = 30                        # timeout cho ssh   
       retry_files_enabled = False         # không lưu file retry khi bị lỗi
       
-      [privilege_escalation]          # cấu hình leo thang quyền, cho phép Ansible chạy task với quyền cao hơn
+   [privilege_escalation]             # cấu hình leo thang quyền, cho phép Ansible chạy task với quyền cao hơn
       become = True                   # Tự động dùng sudo cho tất cả các task
       become_method = sudo            # Ubuntu / CentOS / Debian dùng sudo
       become_user = root              # User sẽ chuyển sang sau khi sudo
@@ -57,7 +57,7 @@
          web-servers
          db-servers
 * **Biến trong Inventory**
-  * **Biến host 
+  * Biến host 
   * Cấu trúc: <hostname> <tên_biến>=<giá_trị>
    * Ví dụ:
    ```bash
@@ -76,3 +76,86 @@
      * ansible_become_password: Mật khẩu khi sudo
    
  ## IV - Ad-Hoc commands trong Ansible
+ * Là những lệnh dùng để thực thi nhanh từ 1 host hoặc nhiều host mà không cần tạo playbook
+ * Cú pháp:
+   ```bash
+      ansible [pattern] -m [module] -a "[module_options]" [options]
+### a. Quản lý hệ thống 
+   ```bash
+   # Kiểm tra kết nối
+   ansible all -m ping
+
+   # Kiểm tra uptime
+   ansible all -m command -a "uptime"
+   
+   # Kiểm tra disk space
+   ansible all -m shell -a "df -h | grep /dev/sda1"
+   
+   # Kiểm tra memory
+   ansible all -m shell -a "free -m"
+   
+   # Thu thập thông tin hệ thống
+   ansible all -m setup
+   ansible all -m setup -a "filter=*ipv4*"
+```
+### b. Quản lý package
+```bash
+   # Cài đặt package
+   ansible ubuntu-servers -m apt -a "name=nginx state=present"
+   ansible centos-servers -m yum -a "name=httpd state=latest"
+   
+   # Gỡ cài đặt
+   ansible all -m apt -a "name=apache2 state=absent"
+   
+   # Cập nhật tất cả package
+   ansible all -m apt -a "upgrade=dist update_cache=yes"
+```
+### c. Quản lí file thư mục
+```bash
+   # Tạo thư mục
+   ansible all -m file -a "path=/opt/myapp state=directory mode=0755"
+   
+   # Tạo file
+   ansible all -m file -a "path=/tmp/test.txt state=touch"
+   
+   # Sao chép file
+   ansible webservers -m copy -a "src=./config.conf dest=/etc/app/"
+   
+   # Download file từ URL
+   ansible all -m get_url -a "url=http://example.com/file.tar.gz dest=/tmp/"
+   
+   # Thay đổi ownership
+   ansible all -m file -a "path=/opt/myapp owner=appuser group=appgroup"
+ ```
+
+### d. Quản lí service
+   ``` bash
+      # Khởi động service
+      ansible webservers -m service -a "name=nginx state=started"
+      
+      # Dừng service
+      ansible webservers -m service -a "name=nginx state=stopped"
+      
+      # Khởi động lại
+      ansible webservers -m service -a "name=nginx state=restarted"
+      
+      # Bật tự động khởi động
+      ansible webservers -m service -a "name=nginx enabled=yes"
+  ```
+### e. Quản lý User
+   ```bash
+      # Tạo user
+      ansible all -m user -a "name=johndoe password={{ 'mypassword' | password_hash('sha512') }}"
+      
+      # Xóa user
+      ansible all -m user -a "name=johndoe state=absent remove=yes"
+      
+      # Thêm user vào group
+      ansible all -m user -a "name=johndoe groups=wheel append=yes"
+  ```
+### f. Hạn chế của Ad-Hoc Commands
+   1. Không có idempotency mặc định - Một số module cần tự đảm bảo
+   2. Không có cấu trúc phức tạp - Không thể xử lý flow phức tạp
+   3. Không thể tái sử dụng - Chỉ phù hợp cho tác vụ một lần
+   4 .Không hỗ trợ handler - Không thể trigger các hành động sau
+   5.  Giới hạn về error handling - Xử lý lỗi thủ công
