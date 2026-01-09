@@ -1,0 +1,23 @@
+all:
+  children:
+    database:
+      hosts:
+        db-server:
+          ansible_host: 192.168.1.120
+          ansible_user: tmpuser
+          ansible_ssh_private_key_file: ~/.ssh/ansible
+          ansible_become_password: '123456'
+    redis:
+      hosts:
+        redis-server:
+          ansible_host: 192.168.1.122
+          ansible_user: tmpuser
+          ansible_ssh_private_key_file: ~/.ssh/ansible
+          ansible_become_password: '123456'
+    backend:
+      hosts:
+        be-server:
+          ansible_host: 192.168.1.122
+          ansible_user: tmpuser
+          ansible_ssh_private_key_file: ~/.ssh/ansible
+          ansible_become_password: '123456'

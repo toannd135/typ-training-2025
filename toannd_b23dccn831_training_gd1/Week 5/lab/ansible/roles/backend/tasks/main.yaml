@@ -1,0 +1,32 @@
+- name: Check if docker-compose.yml exists
+  stat:
+    path: /backend/spring-api/docker-compose.yml
+  register: compose_file
+
+- name: Stop old containers if exist
+  command: docker compose down
+  args:
+    chdir: /backend/spring-api
+  when: compose_file.stat.exists
+
+- name: Remove backend directory
+  file:
+    path: /backend
+    state: absent
+
+- name: Create ptit-backend directory
+  file:
+    path: /backend
+    state: directory
+    mode: '0755'
+
+- name: Copy spring-api directory
+  copy:
+    src: spring-api/
+    dest: /backend/spring-api
+    mode: '0755'
+
+- name: Run Docker compose up
+  command: docker compose up -d --build
+  args:
+    chdir: /backend/spring-api
