@@ -2,8 +2,8 @@ version: '3.8'
   
 services:
   redis:
-    image: redis:7
+    image: redis:{{redis_image_version}}
     container_name: redis-app
     ports:
-      - "6380:6379"
+      - "{{redis_host_port}}:6379"
     restart: always

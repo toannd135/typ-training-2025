@@ -23,15 +23,15 @@
   file:
     path: /redis
     state: directory
-    mode: '0755'
+    mode: "0755"
 
-- name: Copy files directory
-  copy:
-    src:  redis-ptit/
-    dest: /redis
-    mode: '0755'
+- name: Render Docker Compose template
+  template: 
+    src: docker-compose.j2
+    dest: /redis/docker-compose.yml
+    mode: '0600'
 
 - name: Run Docker compose up
-  command: docker compose up -d 
+  command: docker compose up -d
   args:
     chdir: /redis
