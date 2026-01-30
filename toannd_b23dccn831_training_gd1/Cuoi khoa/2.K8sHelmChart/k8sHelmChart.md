@@ -111,11 +111,11 @@ Dự án được tổ chức thành 4 repository chính, phân chia rõ ràng g
 **[Source code Helm Chart Backend](https://github.com/toannd135/typ-backend/tree/main/backend-chart)**: Source code nằm trong thư mục `backend-chart`
 
 #### 2. Helm Chart triển khai frontend deployment  
-**[Source code Helm Chart Frontend](https://github.com/toannd135/typ-frontend/tree/main/helm-chart)**: Source code nằm trong thư mục `frontend-chart`
+**[Source code Helm Chart Frontend](https://github.com/toannd135/typ-frontend/tree/main/frontend-chart)**: Source code nằm trong thư mục `frontend-chart`
 
 ---
 #### 3. Helm Chart triển khai database deployment  
-**[Source code Helm Chart Database](/https://github.com/toannd135/typ-databse/free/main/database-chart)**: Source code nằm trong thư mục `database-chart`
+**[Source code Helm Chart Database](https://github.com/toannd135/typ-databse/free/main/database-chart)**: Source code nằm trong thư mục `database-chart`
 
 ---
 ### Tạo Repo Config cho backend và frontend
